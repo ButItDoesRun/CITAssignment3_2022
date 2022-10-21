@@ -53,7 +53,7 @@ namespace Assignment3TestSuite
 
             Assert.Contains("missing method", response?.Status?.ToLower());
         }
-#if COMMENT
+
         [Fact]
         public void Constraint_RequestWithUnknownMethod_IllegalMethodError()
         {
@@ -73,7 +73,7 @@ namespace Assignment3TestSuite
             Assert.Contains("illegal method", response?.Status?.ToLower());
         }
 
-
+#if COMMENT
         [Theory]
         [InlineData("create")]
         [InlineData("read")]
@@ -600,12 +600,16 @@ namespace Assignment3TestSuite
 
     public static class Util
     {
+
+        //converts an C# object to Json
         public static string ToJson(this object data)
         {
             return JsonSerializer.Serialize(data);
         }
 
+        //converts Json to an C# object
         public static T? FromJson<T>(this string element) => JsonSerializer.Deserialize<T>(element);
+
 
         public static void SendRequest(this TcpClient client, string request)
         {
