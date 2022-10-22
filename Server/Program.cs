@@ -30,7 +30,7 @@ static void HandleClient(TcpClient client)
 {
     var stream = client.GetStream();
 
-    var buffer = new byte[1024];
+    var buffer = new byte[2048];
 
     var rcnt = stream.Read(buffer);
 
@@ -43,8 +43,33 @@ static void HandleClient(TcpClient client)
     {
         Response response = CreateReponse("4 Missing method");
         SendResponse(stream, response);
+
     }
-    stream.Close();
+    else
+    {
+        Console.WriteLine("test");
+        Response response = CreateReponse("4 illegal method");
+        SendResponse(stream, response);
+    }
+ 
+
+
+        /*
+        if (IsMethodValid(request.Method))
+        {
+            Console.WriteLine("Method is valid");
+        }
+        else
+        {
+            Console.WriteLine("error message");
+            Response response = CreateReponse("4  illegal method", request.Body);
+            SendResponse(stream, response);
+            
+        }*/
+
+
+
+        stream.Close();
 }
 
 
@@ -64,4 +89,20 @@ static Response CreateReponse(string status, string body = "")
         Body = body
     };
 }
+
+
+/*
+
+static bool IsMethodValid(string tempMethod)
+{
+    bool ifValid = false;
+    string[] validMethods = { "create", "read", "update", "delete", "echo" };
+    foreach (string method in validMethods)
+    {
+        if (string.Equals(tempMethod, method)) { ifValid = true; }
+    }
+    return ifValid;
+}
+*/
+
 
