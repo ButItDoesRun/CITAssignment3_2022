@@ -19,8 +19,9 @@ while (true)
     {
         HandleClient(client);
     }
-    catch (Exception)
+    catch (Exception e)
     {
+        Console.WriteLine(e);
         Console.WriteLine("Unable to communicate with client...");
     }
 
@@ -39,37 +40,34 @@ static void HandleClient(TcpClient client)
 
     var request = JsonSerializer.Deserialize<Request>(requestText);
 
+    
     if (string.IsNullOrEmpty(request?.Method))
     {
         Response response = CreateReponse("4 Missing method");
         SendResponse(stream, response);
 
     }
-    else
+    else if(!string.IsNullOrEmpty(request.Method))
     {
-        Console.WriteLine("test");
-        Response response = CreateReponse("4 illegal method");
-        SendResponse(stream, response);
-    }
- 
-
-
-        /*
+        Console.WriteLine("I got to here");
         if (IsMethodValid(request.Method))
         {
             Console.WriteLine("Method is valid");
+            Response response = CreateReponse("1  ok");
+            SendResponse(stream, response);
         }
-        else
+        else if(!IsMethodValid(request.Method))
         {
-            Console.WriteLine("error message");
+            Console.WriteLine("I got to here2");
             Response response = CreateReponse("4  illegal method", request.Body);
             SendResponse(stream, response);
             
-        }*/
+        }
 
+    }
+    
 
-
-        stream.Close();
+    stream.Close();
 }
 
 
@@ -91,7 +89,7 @@ static Response CreateReponse(string status, string body = "")
 }
 
 
-/*
+
 
 static bool IsMethodValid(string tempMethod)
 {
@@ -99,10 +97,12 @@ static bool IsMethodValid(string tempMethod)
     string[] validMethods = { "create", "read", "update", "delete", "echo" };
     foreach (string method in validMethods)
     {
-        if (string.Equals(tempMethod, method)) { ifValid = true; }
+        if (string.Equals(tempMethod, method)) { ifValid = true; break;}
     }
     return ifValid;
 }
-*/
+
+
+
 
 

@@ -31,7 +31,7 @@ namespace Assignment3TestSuite
         /// Testing Constrains
         /// 
         ////////////////////////////////////////////////////////// 
-
+/*
 
         [Fact]
         public void Constraint_ConnectionWithoutRequest_ShouldConnect()
@@ -39,6 +39,7 @@ namespace Assignment3TestSuite
             var client = Connect();
             Assert.True(client.Connected);
         }
+*/
 
         /*    Method Tests     */
 
@@ -73,7 +74,7 @@ namespace Assignment3TestSuite
             Assert.Contains("illegal method", response?.Status?.ToLower());
         }
 
-#if COMMENT
+
         [Theory]
         [InlineData("create")]
         [InlineData("read")]
@@ -97,7 +98,7 @@ namespace Assignment3TestSuite
         }
 
         /* Date Tests    */
-
+#if COMMENT
         [Fact]
         public void Constraint_RequestWithoutDate_MissingDateError()
         {
