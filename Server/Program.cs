@@ -1,4 +1,5 @@
-﻿using Server;
+﻿using Microsoft.VisualBasic;
+using Server;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -40,14 +41,15 @@ static void HandleClient(TcpClient client)
 
     var request = JsonSerializer.Deserialize<Request>(requestText);
 
-    
-    if (string.IsNullOrEmpty(request?.Method))
+    bool isMethodMissing = string.IsNullOrEmpty(request?.Method);
+
+    if (isMethodMissing)
     {
         Response response = CreateReponse("4 Missing method");
         SendResponse(stream, response);
 
     }
-    else if(!string.IsNullOrEmpty(request.Method))
+    else if(!isMethodMissing)
     {
         Console.WriteLine("I got to here");
         if (IsMethodValid(request.Method))
@@ -101,8 +103,3 @@ static bool IsMethodValid(string tempMethod)
     }
     return ifValid;
 }
-
-
-
-
-
