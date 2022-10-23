@@ -100,7 +100,11 @@ static void HandleClient(TcpClient client)
     };
     */
 
-     
+    /*
+    if (request.Date != null)
+    {
+        Console.Write(request.Date);
+    }
 
     if (isMethodMissing)
     {
@@ -139,8 +143,18 @@ static void HandleClient(TcpClient client)
             
         }
 
+    }*/
+    if (IsDateValid(request.Date))
+    {
+        Console.WriteLine("date method works!");
+        Response response = CreateReponse("1 ok", request.Body);
+        SendResponse(stream, response);
+    }else if (!IsDateValid(request.Date))
+    {
+        Console.WriteLine("date method works2!");
+        Response response = CreateReponse("missing date", request.Body);
+        SendResponse(stream, response);
     }
-    
 
     stream.Close();
 }
@@ -216,24 +230,37 @@ static bool IsPathValid(string path, List<Category> allCategories)
 static bool IsDateValid(string date)
 {
     bool isValid = false;
+    bool isDateMissing = string.IsNullOrEmpty(date);
+    long currentDate = DateTimeOffset.Now.ToUnixTimeSeconds();
+    bool isDate = Int64.TryParse(date, out long requestDate);
+
+    if (!isDateMissing && isDate)
+    {
+        long subtractedDates = currentDate - requestDate;
+        if (subtractedDates >= 0)
+        {
+            isValid = true;
+        }
+
+    }
 
     return isValid;
 }
 
-
 /*
+var status = new (string statusCode, string reasonPhrase)[]
+{
+    ("1", "Ok"), //delete, read, echo, create, update
+    ("2", "Created"), //create
+    ("3", "Updated"), //update
+    ("4", "Bad Request"), //read, echo, delete, create, update
+    ("5", "Not found"), //read, delete, create, update
+    ("6", "Error") //read, echo, delete, create, update
+};
 
 static Response StatusCodeCheck(Request request)
 {
-    var status = new (string statusCode, string reasonPhrase)[]
-    {
-        ("1", "Ok"), //delete, read, echo, create, update
-        ("2", "Created"), //create
-        ("3", "Updated"), //update
-        ("4", "Bad Request"), //read, echo, delete, create, update
-        ("5", "Not found"), //read, delete, create, update
-        ("6", "Error") //read, echo, delete, create, update
-    };
+    
     string s = null;
     string b = request.Body;
 
