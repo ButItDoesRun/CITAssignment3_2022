@@ -98,7 +98,7 @@ namespace Assignment3TestSuite
         }
 
         /* Date Tests    */
-#if COMMENT
+
         [Fact]
         public void Constraint_RequestWithoutDate_MissingDateError()
         {
@@ -110,7 +110,7 @@ namespace Assignment3TestSuite
 
             Assert.Contains("missing date", response?.Status?.ToLower());
         }
-
+#if COMMENT
         [Fact]
         public void Constraint_RequestWhereDateIsNotUnixTime_IllegalDateError()
         {
