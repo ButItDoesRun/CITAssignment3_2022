@@ -1,30 +1,13 @@
 ﻿using Microsoft.VisualBasic;
 using Server;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-
-//Data Model
-DataModel startDataModel = new DataModel(new List<Category>
-{
-    {new Category(){
-            Cid = "1",
-            Name = "Beverages"
-        }
-    },
-    {new Category(){
-            Cid = "2",
-            Name = "Condiments"
-        }
-    },
-    {new Category(){
-            Cid = "3",
-            Name = "Confections"
-        }
-    }
-});
 
 var server = new TcpListener(IPAddress.Loopback, 5000);
 server.Start();
@@ -49,6 +32,52 @@ while (true)
 
 static void HandleClient(TcpClient client)
 {
+    //Data Model
+    List<Category> allCategories = new List<Category>
+    {
+        {
+            new Category()
+            {
+                Cid = "1",
+                Name = "Beverages"
+            }
+        },
+        {
+            new Category()
+            {
+                Cid = "2",
+                Name = "Condiments"
+            }
+        },
+        {
+            new Category()
+            {
+                Cid = "3",
+                Name = "Confections"
+            }
+        }
+    };
+
+    DataModel Model = new DataModel(allCategories);
+
+    
+    //get all cids into a static list
+    List<string> allCids = new List<string>();
+    foreach (var element in allCategories)
+    {
+        allCids.Add(element.Cid);
+        Console.WriteLine(element.Cid + ": " + element.Name);
+
+    }
+    String[] cids = allCids.ToArray();
+
+    Console.WriteLine("and we try again");
+    foreach (string c in cids)
+    {
+        Console.WriteLine(c);
+    }
+
+    //client start
     var stream = client.GetStream();
 
     var buffer = new byte[2048];
@@ -70,7 +99,7 @@ static void HandleClient(TcpClient client)
     };
     */
 
-    
+     
 
     if (isMethodMissing)
     {
@@ -85,12 +114,12 @@ static void HandleClient(TcpClient client)
         if (IsMethodValid(request.Method))
         {
             Console.WriteLine("Method is valid");
-            if (request.Method != "echo" && IsPathValid(request.Path))
+            if (request.Method != "echo" && IsPathValid(request.Path, allCategories))
             {
                 Console.WriteLine("path is valid");
 
             }
-            else if (request.Method != "echo" && !IsPathValid(request.Path))
+            else if (request.Method != "echo" && IsPathValid(request.Path, allCategories))
             {
                 Console.WriteLine("path is invalid");
                 Response response = CreateReponse("4 Bad Request: missing resource");
@@ -147,30 +176,37 @@ static bool IsMethodValid(string tempMethod)
     return ifValid;
 }
 
-static bool IsPathValid(string path)
+
+static bool IsCidValid(string path, List<Category> allCategories)
+{
+    bool validCid = false;
+    string pCid = path.Remove(0, 15);
+    foreach (var cid in allCategories)
+    {
+        if (string.Equals(cid, pCid))
+        {
+            validCid = true;
+            break;
+        }
+
+    }
+    return validCid;
+}
+
+
+static bool IsPathValid(string path, List<Category> allCategories)
 {
     bool ifValid = false;
     bool isPathMissing = string.IsNullOrEmpty(path);
 
-
-    /*
-    List<Category> defaultCategories = new List<Category>
-    {
-        {new(1, "Beverages") },
-        {new (2, "Condiments")},
-        {new (3, "Confections")},
-
-    };
-    */
-
+    //checks if path is valid
     if (!isPathMissing)
     {
-        if (path.StartsWith("/api/categories")
+        if (string.Equals(path, "/api/categories")
             || path.StartsWith("testing")
+            || path.StartsWith("/api/categories/") && IsCidValid(path, allCategories)
             )
-        {
-            ifValid = true;
-        }
+        { ifValid = true;}
     }
     return ifValid;
 }
