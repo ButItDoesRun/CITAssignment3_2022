@@ -60,7 +60,7 @@ static void HandleClient(TcpClient client)
 
     DataModel Model = new DataModel(allCategories);
 
-    
+    /*
     //get all cids into a static list
     List<string> allCids = new List<string>();
     foreach (var element in allCategories)
@@ -76,6 +76,7 @@ static void HandleClient(TcpClient client)
     {
         Console.WriteLine(c);
     }
+    */
 
     //client start
     var stream = client.GetStream();
@@ -119,7 +120,7 @@ static void HandleClient(TcpClient client)
                 Console.WriteLine("path is valid");
 
             }
-            else if (request.Method != "echo" && IsPathValid(request.Path, allCategories))
+            else if (request.Method != "echo" && !IsPathValid(request.Path, allCategories))
             {
                 Console.WriteLine("path is invalid");
                 Response response = CreateReponse("4 Bad Request: missing resource");
@@ -212,7 +213,12 @@ static bool IsPathValid(string path, List<Category> allCategories)
 }
 
 
+static bool IsDateValid(string date)
+{
+    bool isValid = false;
 
+    return isValid;
+}
 
 
 /*
