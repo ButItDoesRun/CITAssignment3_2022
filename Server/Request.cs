@@ -107,14 +107,31 @@ namespace Server
                     Errors.Add("4 Bad Request");
                     return;
                 }
+            }
+        }
 
+        private void isDateValid()
+        {
+            bool isDateMissing = string.IsNullOrEmpty(Date);
+            long currentDate = DateTimeOffset.Now.ToUnixTimeSeconds();
+            bool isDate = Int64.TryParse(Date, out long requestDate);
 
+            if (isDateMissing)
+            {
+                Errors.Add("missing date");
+                return;
             }
 
-
-
-
-
+            if (!isDateMissing && isDate)
+            {
+                long subtractedDates = currentDate - requestDate;
+                if (subtractedDates < 0)
+                {
+                    Errors.Add("illegal date");
+                    return;
+                }
+            }
+            
         }
 
         public Response status4Check()
@@ -124,7 +141,9 @@ namespace Server
 
             isMethodValid();
             isPathValid();
-            
+            isDateValid();
+
+
 
             foreach (string error in Errors)
             {
