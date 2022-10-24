@@ -33,6 +33,7 @@ while (true)
 
 void HandleClient(TcpClient client)
 {
+    /*
     //Data Model
     List<Category> allCategories = new List<Category>
     {
@@ -57,9 +58,9 @@ void HandleClient(TcpClient client)
                 Name = "Confections"
             }
         }
-    };
+    };*/
 
-    DataModel Model = new DataModel(allCategories);
+    //DataModel Model = new DataModel(request.allCategories);
 
     //client start
     var stream = client.GetStream();
@@ -72,19 +73,27 @@ void HandleClient(TcpClient client)
     Console.WriteLine(requestText);
 
     var request = JsonSerializer.Deserialize<Request>(requestText);
+
+    DataModel Model = new DataModel(request.allCategories);
+
     Response response = CreateReponse("", "");
     
     response = request.status4Check();
 
     bool noBadRequest = string.IsNullOrEmpty(response.Status);
 
-    if (!noBadRequest)
-    {
-        response.Body = request.Body;
-    }else if (noBadRequest)
+    if (noBadRequest)
     {
         //valid request
         string m = request.Method;
+        string p = request.Path;
+
+        //Execute read method
+        if (m.Equals("read"))
+        {
+            response = Model.read(p);
+            Console.WriteLine(response.Status);
+        }
 
         //Execute echo method
         if (m.Equals("echo"))

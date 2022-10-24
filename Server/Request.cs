@@ -101,7 +101,7 @@ namespace Server
                 //reject paths without the /api/categories format
                 if (!Path.StartsWith("/api/categories"))
                 {
-                    Errors.Add("4 Bad Request ");
+                    Errors.Add("4 Bad Request");
                     return;
                 }
 
@@ -120,7 +120,7 @@ namespace Server
 
                 if (freq == 3 && !isCidInt)
                 {
-                    Errors.Add("illegal resource ");
+                    Errors.Add("4 Bad Request");
                     return;
 
                 }
@@ -232,6 +232,14 @@ namespace Server
                 //Console.WriteLine(error);
                 response.Status += error;
             }
+
+            //handle create status 4
+            String badR = "4 Bad Request";
+            if (response.Status.Contains("4 Bad Request") && Method == "create")
+            {
+                response.Status = badR;
+                response.Body = null;
+            }else{ response.Body = Body; }
 
             return response;
         }
