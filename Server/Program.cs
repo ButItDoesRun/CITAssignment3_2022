@@ -141,16 +141,21 @@ static bool IsMethodValid(string tempMethod)
 static bool IsCidValid(string path, List<Category> allCategories)
 {
     bool validCid = false;
-    string pCid = path.Remove(0, 15);
-    foreach (var cid in allCategories)
+    int freq = path.Count(f => f == '/');
+    if (freq == 3)
     {
-        if (string.Equals(cid, pCid))
+        string pCid = path.Remove(0, 15);
+        foreach (var cid in allCategories)
         {
-            validCid = true;
-            break;
-        }
+            if (string.Equals(cid, pCid))
+            {
+                validCid = true;
+                break;
+            }
 
+        }
     }
+ 
     return validCid;
 }
 
@@ -193,25 +198,37 @@ static bool IsDateValid(string date)
     return isValid;
 }
 
-static bool IsBodyValid(string body, List<Category> allCategories)
+static bool IsBodyValid(Request r, List<Category> allCategories)
 {
+    string m = r.Method;
+    string body = r.Body;
     bool isValid = false;
     bool isBodyMissing = string.IsNullOrEmpty(body);
 
     if (!isBodyMissing)
     {
-        Category newCat = bodyToCategory(body);
-        if (!string.IsNullOrEmpty(newCat.Cid) && !string.IsNullOrEmpty(newCat.Name))
+        if (m.Equals("create"))
         {
-            foreach (var cid in allCategories)
-            {
-                if (cid.Cid.Equals(newCat.Cid))
-                {
-                    isValid = true;
-                }
-            }
+            if(body.Contains("name:")){ isValid = true;}
 
         }
+
+        if (m.Equals("update"))
+        {
+            Category newCat = bodyToCategory(body);
+            if (!string.IsNullOrEmpty(newCat.Cid) && !string.IsNullOrEmpty(newCat.Name))
+            {
+                foreach (var cid in allCategories)
+                {
+                    if (cid.Cid.Equals(newCat.Cid))
+                    {
+                        isValid = true;
+                    }
+                }
+
+            }
+        }
+       
     }
 
     return isValid;
@@ -248,6 +265,23 @@ static Category bodyToCategory(string body)
             }
         }
         
+    }else if (!body.Contains("cid") && body.Contains("name"))
+    {
+        body = body.Replace("{", "");
+        body = body.Replace("}", "");
+        body = body.Replace(charToString, "");
+        var pathSplit = body.Split(":");
+
+        foreach (string element in pathSplit)
+        {
+           if (!element.Contains("name"))
+           {
+                string gotName = element.Remove(0, 4);
+                Console.WriteLine(gotName);
+                newCategory.Name = gotName;
+                newCategory.Cid = "noCid";
+}
+        }
     }
 
     return newCategory;
@@ -273,7 +307,8 @@ static bool checkForStatus4(Request request, List<Category> allCategories)
     bool method = IsMethodValid(request.Method);
     bool path = IsPathValid(request.Path, allCategories);
     bool date = IsDateValid(request.Date);
-    bool body = IsBodyValid(request.Body, allCategories);
+    bool body = IsBodyValid(request, allCategories);
+    bool isBodyMissing = string.IsNullOrEmpty(request.Body);
 
     if (!method)
     {
@@ -283,17 +318,27 @@ static bool checkForStatus4(Request request, List<Category> allCategories)
             || method && request.Method.Equals("update"))
         {
             if(!path || !date || !body){ badRequest = true;}
+            else if (path && !request.Path.Equals("/api/categories") && date && body)
+            {
+                badRequest = true;
+            }
         }
 
         if (method && request.Method.Equals("read")
             || method && request.Method.Equals("delete"))
         {
             if (!path || !date) { badRequest = true; }
+            else if (path
+                     && !IsCidValid(request.Path, allCategories)
+                     && date)
+            {
+                badRequest = true;
+            }
         }
         
         if (method && request.Method.Equals("echo"))
         {
-            if (!date || !body) { badRequest = true; }
+            if (!date || isBodyMissing) { badRequest = true; }
         }
     }
 
@@ -301,83 +346,46 @@ static bool checkForStatus4(Request request, List<Category> allCategories)
     return badRequest;
 }
 
-static Response handleStaus4Requests(Request request, List<Category> allCategories)
+static Response handleStatus4Response(Request request, List<Category> allCategories)
 {
-    
-    
-    bool method = IsMethodValid(request.Method);
-    bool path = IsPathValid(request.Path, allCategories);
-    bool date = IsDateValid(request.Date);
-    bool body = IsBodyValid(request.Body, allCategories);
-
+    string m = request.Method;
+    string s = "4 Bad Request : ";
     bool isMethodMissing = string.IsNullOrEmpty(request.Method);
     bool isPathMissing = string.IsNullOrEmpty(request.Path);
     bool isDateMissing = string.IsNullOrEmpty(request.Date);
     bool isBodyMissing = string.IsNullOrEmpty(request.Body);
 
-    if (!method)
-    {
 
+    //method error message
+    if (isMethodMissing) { s += "missing method, ";}
+    else if(!isMethodMissing) { s += "illegal method, "; }
+
+    //path error message
+    if (isPathMissing && !m.Equals("echo"))
+    {
+        s += "missing path, ";
+    }
+    else
+    {
+        s += "illegal path, ";
     }
 
-    if (!path)
-    {
+    //date error message
+    if (isDateMissing) { s += "missing date, "; }
+    else if (!isDateMissing) { s += "illegal date, ";}
 
+    //body error message
+    if (isBodyMissing && m.Equals("create")
+        || isBodyMissing && m.Equals("update"))
+    {
+        s += "missing body, ";
+    }
+    else
+    {
+        s += "illegal body, ";
     }
 
-    if (!date)
-    {
-
-    }
-
-    if (!body)
-    {
-
-    }
-
-    Response response = CreateReponse("missing date", request.Body);
+    Response response = CreateReponse(s, request.Body);
     return response;
 }
 
-
-/*
-static Response StatusCodeCheck(Request request)
-{
-    
-    string s = null;
-    string b = request.Body;
-
-    bool isMethodMissing = string.IsNullOrEmpty(request.Method);
-    bool isPathMissing = string.IsNullOrEmpty(request.Path);
-    bool isDateMissing = string.IsNullOrEmpty(request.Date);
-
-    if (isMethodMissing || isPathMissing || isDateMissing)
-    {
-        s += "4 ";
-
-        if (isMethodMissing) { s += "missing method "; }
-        if (isPathMissing && request.Method != "echo") { s += "missing path "; }
-        if (isDateMissing) { s += "missing date "; }
-    }
-    else if (!isMethodMissing)
-    {
-        string mV = IsMethodValid(request.Method) ? "1 OK " : "4 illegal method ";
-        s += mV;
-
-
-    }
-
-    //create”, “read”, “update”, “delete”, “echo”
-
-    foreach (var sa in status)
-    {
-
-    }
-
-
-
-    Response res = CreateReponse(s, b);
-    return res;
-}
-
-*/
