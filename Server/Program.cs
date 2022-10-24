@@ -73,8 +73,27 @@ void HandleClient(TcpClient client)
 
     var request = JsonSerializer.Deserialize<Request>(requestText);
     Response response = CreateReponse("", "");
+    
     response = request.status4Check();
-    //Console.WriteLine(response.Status);
+
+    bool noBadRequest = string.IsNullOrEmpty(response.Status);
+
+    if (!noBadRequest)
+    {
+        response.Body = request.Body;
+    }else if (noBadRequest)
+    {
+        //valid request
+        string m = request.Method;
+
+        //Execute echo method
+        if (m.Equals("echo"))
+        {
+            response = CreateReponse("1 Ok", request.Body);
+        }
+    }
+
+
     SendResponse(stream, response);
 /*
        bool isBadRequest = checkForStatus4(request, allCategories);

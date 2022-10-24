@@ -174,7 +174,7 @@ namespace Assignment3TestSuite
             Assert.Contains("illegal body", response?.Status?.ToLower());
 
         }
-#if COMMENT
+
         /* Echo Test */
         [Fact]
         public void Echo_RequestWithBody_ReturnsBody()
@@ -194,7 +194,7 @@ namespace Assignment3TestSuite
             Assert.Equal("Hello World", response?.Body);
 
         }
-
+#if COMMENT
         //////////////////////////////////////////////////////////
         /// 
         /// Testing API 
