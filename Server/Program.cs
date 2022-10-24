@@ -78,7 +78,7 @@ void HandleClient(TcpClient client)
     if (isBadRequest)
     {
         //return error messenges
-        Response response = handleStatus4Response(request);
+        Response response = handleStatus4Response(request, allCategories);
         Console.WriteLine(response.Status);
         Console.WriteLine(response.Body);
         SendResponse(stream, response);
@@ -317,8 +317,6 @@ static bool checkForStatus4(Request request, List<Category> allCategories)
     {
         if (m.Equals("create"))
         {
-            Console.Write(m + ": create");
-            Console.Write("i get here");
             if (!path || !date || !body) { badRequest = true; }
             else if (path && request.Path != "/api/categories" && date && body)
             {
@@ -357,7 +355,7 @@ static bool checkForStatus4(Request request, List<Category> allCategories)
     return badRequest;
 }
 
-static Response handleStatus4Response(Request request)
+static Response handleStatus4Response(Request request, List<Category> allCategories)
 {
     
     string m = request.Method;
@@ -367,8 +365,9 @@ static Response handleStatus4Response(Request request)
     bool isDateMissing = string.IsNullOrEmpty(request.Date);
     bool isBodyMissing = string.IsNullOrEmpty(request.Body);
     bool method = IsMethodValid(m);
+    bool path = IsPathValid(request.Path, allCategories);
     bool date = IsDateValid(request.Date);
-
+    bool body = IsBodyValid(request, allCategories);
 
     if (isMethodMissing)
     {
@@ -392,35 +391,32 @@ static Response handleStatus4Response(Request request)
     {
         if (method)
         {
-            if (m.Equals("create") || m.Equals("update"))
+            if (m.Equals("create"))
             {
                 //path, date, body
-                if (isPathMissing)
-                {
-                    s += "missing resource, ";
-                }
-                else
-                {
-                    s += "illegal resource, ";
-                }
+                if (isPathMissing) { s += "missing resource, "; }
+                else if (!isPathMissing && request.Path != "/api/categories")  
+                { s += "illegal resource, "; }
 
-                if (isDateMissing)
-                {
-                    s += "missing date, ";
-                }
-                else
-                {
-                    s += "illegal date, ";
-                }
+                if (isDateMissing) { s += "missing date, "; } 
+                else if(!isDateMissing && !date) { s += "illegal date, ";}
 
-                if (isBodyMissing)
-                {
-                    s += "missing body, ";
-                }
-                else
-                {
-                    s += "illegal body, ";
-                }
+                if (isBodyMissing) { s += "missing body, "; }
+                else if (!isBodyMissing && !body) { s += "illegal body, "; }
+
+            }
+
+            if (m.Equals("update"))
+            {
+                //path, date, body
+                if (isPathMissing) { s += "missing resource, "; }
+                else { s += "illegal resource, "; }
+
+                if (isDateMissing) { s += "missing date, "; }
+                else { s += "illegal date, "; }
+
+                if (isBodyMissing) { s += "missing body, "; }
+                else { s += "illegal body, "; }
             }
 
 
@@ -450,8 +446,7 @@ static Response handleStatus4Response(Request request)
             {
                 s = "4 Bad Request";
             }
-            else
-            {
+            else if(m.Equals("read")) {
                 //path, date
                 if (isPathMissing)
                 {
@@ -459,7 +454,7 @@ static Response handleStatus4Response(Request request)
                 }
                 else
                 {
-                    s += "illegal resource, ";
+                    s += "illegal resource2, ";
                 }
 
                 if (isDateMissing)
