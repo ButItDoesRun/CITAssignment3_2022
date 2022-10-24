@@ -153,7 +153,7 @@ namespace Assignment3TestSuite
             Assert.Contains("missing body", response?.Status?.ToLower());
         }
 
-
+#endif
         [Fact]
         public void Constraint_RequestUpdateWithoutJsonBody_IllegalBodyError()
         {
@@ -174,7 +174,7 @@ namespace Assignment3TestSuite
             Assert.Contains("illegal body", response?.Status?.ToLower());
 
         }
-
+#if comment
         /* Echo Test */
         [Fact]
         public void Echo_RequestWithBody_ReturnsBody()

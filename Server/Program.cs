@@ -2,6 +2,7 @@
 using Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Claims;
@@ -90,72 +91,17 @@ static void HandleClient(TcpClient client)
 
     var request = JsonSerializer.Deserialize<Request>(requestText);
 
-    bool isMethodMissing = string.IsNullOrEmpty(request?.Method);
+    bool IsValidRequest = checkForStatus4(request, allCategories);
 
-    /*
-    Category newCat = new Category
+    if (!IsValidRequest)
     {
-        Cid = "1",
-        Name = "Beverages"
-    };
-    */
-
-    /*
-    if (request.Date != null)
+        //return error messenges
+    }else if (IsValidRequest)
     {
-        Console.Write(request.Date);
+        //do datamodel methods
     }
 
-    if (isMethodMissing)
-    {
-        Console.WriteLine("Method is missing");
-        Response response = CreateReponse("4 Missing method");
-        SendResponse(stream, response);
-
-    }
-    else if(!isMethodMissing)
-    {
-        Console.WriteLine("Method is present");
-        if (IsMethodValid(request.Method))
-        {
-            Console.WriteLine("Method is valid");
-            if (request.Method != "echo" && IsPathValid(request.Path, allCategories))
-            {
-                Console.WriteLine("path is valid");
-
-            }
-            else if (request.Method != "echo" && !IsPathValid(request.Path, allCategories))
-            {
-                Console.WriteLine("path is invalid");
-                Response response = CreateReponse("4 Bad Request: missing resource");
-                SendResponse(stream, response);
-
-            }
-            
-           
-        }
-        else if(!IsMethodValid(request.Method))
-        {
-            
-            Console.WriteLine("invalid method");
-            Response response = CreateReponse("4  illegal method", request.Body);
-            SendResponse(stream, response);
-            
-        }
-
-    }*/
-    if (IsDateValid(request.Date))
-    {
-        Console.WriteLine("date method works!");
-        Response response = CreateReponse("1 ok", request.Body);
-        SendResponse(stream, response);
-    }else if (!IsDateValid(request.Date))
-    {
-        Console.WriteLine("date method works2!");
-        Response response = CreateReponse("missing date", request.Body);
-        SendResponse(stream, response);
-    }
-
+  
     stream.Close();
 }
 
@@ -247,6 +193,67 @@ static bool IsDateValid(string date)
     return isValid;
 }
 
+static bool IsBodyValid(string body, List<Category> allCategories)
+{
+    bool isValid = false;
+    bool isBodyMissing = string.IsNullOrEmpty(body);
+
+    if (!isBodyMissing)
+    {
+        Category newCat = bodyToCategory(body);
+        if (!string.IsNullOrEmpty(newCat.Cid) && !string.IsNullOrEmpty(newCat.Name))
+        {
+            foreach (var cid in allCategories)
+            {
+                if (cid.Cid.Equals(newCat.Cid))
+                {
+                    isValid = true;
+                }
+            }
+
+        }
+    }
+
+    return isValid;
+}
+
+static Category bodyToCategory(string body)
+{
+    var newCategory = new Category{Cid ="", Name =""};
+
+    var charToReplace = '"';
+    string charToString = charToReplace.ToString();
+
+
+    if (body.Contains("cid") && body.Contains("name"))
+    {
+        body = body.Replace("{", "");
+        body = body.Replace("}", "");
+        body = body.Replace(charToString, "");
+        var pathSplit = body.Split(","); 
+        
+        foreach (string element in pathSplit) 
+        { 
+            if (element.Contains("cid:")) 
+            { 
+                string gotCid = element.Remove(0, 4); 
+                Console.WriteLine(gotCid);
+                newCategory.Cid = gotCid;
+            } 
+            if (element.Contains("name:")) 
+            { 
+                string gotName = element.Remove(0, 5); 
+                Console.WriteLine(gotName); 
+                newCategory.Name = gotName;
+            }
+        }
+        
+    }
+
+    return newCategory;
+}
+
+
 /*
 var status = new (string statusCode, string reasonPhrase)[]
 {
@@ -257,7 +264,83 @@ var status = new (string statusCode, string reasonPhrase)[]
     ("5", "Not found"), //read, delete, create, update
     ("6", "Error") //read, echo, delete, create, update
 };
+*/
 
+static bool checkForStatus4(Request request, List<Category> allCategories)
+{
+    bool badRequest = false;
+
+    bool method = IsMethodValid(request.Method);
+    bool path = IsPathValid(request.Path, allCategories);
+    bool date = IsDateValid(request.Date);
+    bool body = IsBodyValid(request.Body, allCategories);
+
+    if (!method)
+    {
+        badRequest = true;
+
+        if (method && request.Method.Equals("create")
+            || method && request.Method.Equals("update"))
+        {
+            if(!path || !date || !body){ badRequest = true;}
+        }
+
+        if (method && request.Method.Equals("read")
+            || method && request.Method.Equals("delete"))
+        {
+            if (!path || !date) { badRequest = true; }
+        }
+        
+        if (method && request.Method.Equals("echo"))
+        {
+            if (!date || !body) { badRequest = true; }
+        }
+    }
+
+ 
+    return badRequest;
+}
+
+static Response handleStaus4Requests(Request request, List<Category> allCategories)
+{
+    
+    
+    bool method = IsMethodValid(request.Method);
+    bool path = IsPathValid(request.Path, allCategories);
+    bool date = IsDateValid(request.Date);
+    bool body = IsBodyValid(request.Body, allCategories);
+
+    bool isMethodMissing = string.IsNullOrEmpty(request.Method);
+    bool isPathMissing = string.IsNullOrEmpty(request.Path);
+    bool isDateMissing = string.IsNullOrEmpty(request.Date);
+    bool isBodyMissing = string.IsNullOrEmpty(request.Body);
+
+    if (!method)
+    {
+
+    }
+
+    if (!path)
+    {
+
+    }
+
+    if (!date)
+    {
+
+    }
+
+    if (!body)
+    {
+
+    }
+
+    Response response = CreateReponse("missing date", request.Body);
+    return response;
+}
+
+
+/*
 static Response StatusCodeCheck(Request request)
 {
     
