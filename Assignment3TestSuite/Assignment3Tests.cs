@@ -194,7 +194,7 @@ namespace Assignment3TestSuite
             Assert.Equal("Hello World", response?.Body);
 
         }
-#if COMMENT
+
         //////////////////////////////////////////////////////////
         /// 
         /// Testing API 
@@ -263,7 +263,7 @@ namespace Assignment3TestSuite
 
             Assert.Equal(expectedResponse.ToJson().ToLower(), response?.ToJson().ToLower());
         }
-
+#if COMMENT
         [Fact]
         public void Constraint_UpdateWithOutPathId_StatusBadRequest()
         {
