@@ -16,9 +16,35 @@ namespace Server
         public string? Date { get; set; }
         public string? Body { get; set; }
 
+        //Default datamodel
+        public List<Category> allCategories = new List<Category>
+        {
+            {
+                new()
+                {
+                    Cid = "1",
+                    Name = "Beverages"
+                }
+            },
+            {
+                new()
+                {
+                    Cid = "2",
+                    Name = "Condiments"
+                }
+            },
+            {
+                new()
+                {
+                    Cid = "3",
+                    Name = "Confections"
+                }
+            }
+        };
 
         //ErrorMessages 
         private List<string> Errors = new List<string>(10);
+        private string cid { get; set; }
 
         //check if method is valid - add error messages if not
         private void isMethodValid()
@@ -86,6 +112,8 @@ namespace Server
 
                 int freq = Path.Count(f => f == '/');
                 string pCid = Path.Remove(0, 15);
+                //get cid
+                cid = pCid;
                 bool isCidInt = int.TryParse(pCid, out int result);
 
                 //reject paths without id when method is delete or update
@@ -134,6 +162,51 @@ namespace Server
             
         }
 
+        private void isBodyValid()
+        { 
+            bool isBodyMissing = string.IsNullOrEmpty(Body);
+
+            if (Method == "read" || isBodyMissing && Method == "delete")
+            {
+                return; 
+            }
+
+            if (isBodyMissing && Method == "echo"
+                || isBodyMissing && Method == "create"
+                || isBodyMissing && Method == "update")
+            {
+                Errors.Add("missing body");
+                return;
+            }
+
+       
+            if (!isBodyMissing && Method == "create")
+            {
+                if (!Body.Contains("name:"))
+                {
+                    Errors.Add("illegal body");
+                    return;
+                }
+                
+            }
+
+            if (!isBodyMissing && Method == "update")
+            {
+                Category newCat = bodyToCategory();
+                if (!string.IsNullOrEmpty(newCat.Cid) && !string.IsNullOrEmpty(newCat.Name))
+                {
+                    foreach (var catCid in allCategories)
+                    {
+                        if (catCid.Cid != cid)
+                        {
+                            Errors.Add("illegal body");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
         public Response status4Check()
         {
             Response response = new Response();
@@ -142,6 +215,7 @@ namespace Server
             isMethodValid();
             isPathValid();
             isDateValid();
+            isBodyValid();
 
 
 
@@ -152,6 +226,59 @@ namespace Server
             }
 
             return response;
+        }
+        private Category bodyToCategory()
+        {
+            var newCategory = new Category { Cid = "", Name = "" };
+
+            var charToReplace = '"';
+            string charToString = charToReplace.ToString();
+
+
+            if (Body.Contains("cid") && Body.Contains("name"))
+            {
+                Body = Body.Replace("{", "");
+                Body = Body.Replace("}", "");
+                Body = Body.Replace(charToString, "");
+                var pathSplit = Body.Split(",");
+
+                foreach (string element in pathSplit)
+                {
+                    if (element.Contains("cid:"))
+                    {
+                        string gotCid = element.Remove(0, 4);
+                        //Console.WriteLine(gotCid);
+                        newCategory.Cid = gotCid;
+                    }
+                    if (element.Contains("name:"))
+                    {
+                        string gotName = element.Remove(0, 5);
+                        //Console.WriteLine(gotName);
+                        newCategory.Name = gotName;
+                    }
+                }
+
+            }
+            else if (!Body.Contains("cid") && Body.Contains("name"))
+            {
+                Body = Body.Replace("{", "");
+                Body = Body.Replace("}", "");
+                Body = Body.Replace(charToString, "");
+                var pathSplit = Body.Split(":");
+
+                foreach (string element in pathSplit)
+                {
+                    if (!element.Contains("name"))
+                    {
+                        string gotName = element.Remove(0, 4);
+                        Console.WriteLine(gotName);
+                        newCategory.Name = gotName;
+                        newCategory.Cid = "noCid";
+                    }
+                }
+            }
+
+            return newCategory;
         }
 
     }
