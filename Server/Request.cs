@@ -106,7 +106,7 @@ namespace Server
                 }
 
                 int freq = Path.Count(f => f == '/');
-                string pCid = Path.Remove(0, 15);
+                string pCid = Path.Remove(0, 16);
                 //get cid
                 cid = pCid;
                 bool isCidInt = int.TryParse(pCid, out int result);
@@ -194,6 +194,12 @@ namespace Server
 
             if (!isBodyMissing && Method == "update")
             {
+                //Json objects will always be encapsulated in {}
+                if (!Body.Contains("{ }"))
+                {
+                    Errors.Add("illegal body ");
+                    return;
+                }
                 Category newCat = bodyToCategory();
                 if (!string.IsNullOrEmpty(newCat.Cid) && !string.IsNullOrEmpty(newCat.Name))
                 {

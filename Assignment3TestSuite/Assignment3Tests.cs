@@ -129,7 +129,7 @@ namespace Assignment3TestSuite
 
             Assert.Contains("illegal date", response?.Status?.ToLower());
         }
-#if COMMENT
+
         /* Body Tests    */
 
         [Theory]
@@ -174,7 +174,7 @@ namespace Assignment3TestSuite
             Assert.Contains("illegal body", response?.Status?.ToLower());
 
         }
-
+#if COMMENT
         /* Echo Test */
         [Fact]
         public void Echo_RequestWithBody_ReturnsBody()
