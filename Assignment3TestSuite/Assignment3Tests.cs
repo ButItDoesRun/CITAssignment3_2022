@@ -110,7 +110,7 @@ namespace Assignment3TestSuite
 
             Assert.Contains("missing date", response?.Status?.ToLower());
         }
-#if COMMENT
+
         [Fact]
         public void Constraint_RequestWhereDateIsNotUnixTime_IllegalDateError()
         {
@@ -153,7 +153,7 @@ namespace Assignment3TestSuite
             Assert.Contains("missing body", response?.Status?.ToLower());
         }
 
-#endif
+
         [Fact]
         public void Constraint_RequestUpdateWithoutJsonBody_IllegalBodyError()
         {
@@ -174,7 +174,7 @@ namespace Assignment3TestSuite
             Assert.Contains("illegal body", response?.Status?.ToLower());
 
         }
-#if comment
+
         /* Echo Test */
         [Fact]
         public void Echo_RequestWithBody_ReturnsBody()
@@ -194,7 +194,7 @@ namespace Assignment3TestSuite
             Assert.Equal("Hello World", response?.Body);
 
         }
-
+#if COMMENT
         //////////////////////////////////////////////////////////
         /// 
         /// Testing API 
