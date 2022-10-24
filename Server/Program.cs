@@ -37,21 +37,21 @@ void HandleClient(TcpClient client)
     List<Category> allCategories = new List<Category>
     {
         {
-            new ()
+            new()
             {
                 Cid = "1",
                 Name = "Beverages"
             }
         },
         {
-            new ()
+            new()
             {
                 Cid = "2",
                 Name = "Condiments"
             }
         },
         {
-            new ()
+            new()
             {
                 Cid = "3",
                 Name = "Confections"
@@ -72,46 +72,50 @@ void HandleClient(TcpClient client)
     Console.WriteLine(requestText);
 
     var request = JsonSerializer.Deserialize<Request>(requestText);
+    Response response = CreateReponse("", "");
+    response = request.status4Check();
+    Console.WriteLine(response.Status);
+    SendResponse(stream, response);
+/*
+       bool isBadRequest = checkForStatus4(request, allCategories);
 
-    bool isBadRequest = checkForStatus4(request, allCategories);
+       if (isBadRequest)
+       {
+           //return error messenges
+           Response response = handleStatus4Response(request, allCategories);
+           Console.WriteLine(response.Status);
+           Console.WriteLine(response.Body);
+           SendResponse(stream, response);
+       }
+       else if (!isBadRequest)
+       {
+           //do datamodel methods
+           string m = request.Method;
+           string p = request.Path;
+           Response response = CreateReponse("", "");
 
-    if (isBadRequest)
-    {
-        //return error messenges
-        Response response = handleStatus4Response(request, allCategories);
-        Console.WriteLine(response.Status);
-        Console.WriteLine(response.Body);
-        SendResponse(stream, response);
-    }
-    else if (!isBadRequest)
-    {
-        //do datamodel methods
-        string m = request.Method;
-        string p = request.Path;
-        Response response = CreateReponse("", "");
+           Console.WriteLine("request valid");
 
-        Console.WriteLine("request valid");
+           //Execute read method
+           if (m.Equals("read"))
+           {
+               response = Model.read(p);
+               Console.WriteLine(response.Status);
+           }
 
-        //Execute read method
-        if (m.Equals("read"))
-        {
-            response = Model.read(p);
-            Console.WriteLine(response.Status);
-        }
+           //Execute echo method
+           if (m.Equals("echo"))
+           {
+               response = CreateReponse("1 Ok", request.Body);
+           }
+       */
 
-        //Execute echo method
-        if (m.Equals("echo"))
-        {
-            response = CreateReponse("1 Ok", request.Body);
-        }
+    //}
+    ////SendResponse(stream, response);
 
 
-        
-        SendResponse(stream, response);
-        
-    }
 
-  
+
     stream.Close();
 }
 
@@ -134,7 +138,7 @@ static Response CreateReponse(string status, string body = "")
 }
 
 
-
+/*
 
 static bool IsMethodValid(string tempMethod)
 {
@@ -359,6 +363,7 @@ static Response handleStatus4Response(Request request, List<Category> allCategor
 {
     
     string m = request.Method;
+    string p = request.Path;
     string s = "4 Bad Request : ";
     bool isMethodMissing = string.IsNullOrEmpty(m);
     bool isPathMissing = string.IsNullOrEmpty(request.Path);
@@ -391,19 +396,31 @@ static Response handleStatus4Response(Request request, List<Category> allCategor
     {
         if (method)
         {
-            if (m.Equals("create"))
+            if (m.Equals("create") && isPathMissing)
             {
                 //path, date, body
-                if (isPathMissing) { s += "missing resource, "; }
-                else if (!isPathMissing && request.Path != "/api/categories")  
-                { s += "illegal resource, "; }
-
+                s += "missing resource, ";
+               
                 if (isDateMissing) { s += "missing date, "; } 
                 else if(!isDateMissing && !date) { s += "illegal date, ";}
 
                 if (isBodyMissing) { s += "missing body, "; }
                 else if (!isBodyMissing && !body) { s += "illegal body, "; }
 
+            }else if (m.Equals("create") && !isPathMissing)
+            {
+                if (!path)
+                {
+                    s = "4 Bad Request";
+                }else if (path)
+                {
+                    if (isDateMissing) { s += "missing date, "; }
+                    else if (!isDateMissing && !date) { s += "illegal date, "; }
+
+                    if (isBodyMissing) { s += "missing body, "; }
+                    else if (!isBodyMissing && !body) { s += "illegal body, "; }
+                }
+                
             }
 
             if (m.Equals("update"))
@@ -417,6 +434,29 @@ static Response handleStatus4Response(Request request, List<Category> allCategor
 
                 if (isBodyMissing) { s += "missing body, "; }
                 else { s += "illegal body, "; }
+            }
+
+            if (m.Equals("update") && isPathMissing)
+            {
+                //path, date, body
+                s += "missing resource, ";
+
+                if (isDateMissing) { s += "missing date, "; }
+                else if (!isDateMissing && !date) { s += "illegal date, "; }
+
+                if (isBodyMissing) { s += "missing body, "; }
+                else if (!isBodyMissing && !body) { s += "illegal body, "; }
+
+            }
+            else if (m.Equals("update") && !isPathMissing)
+            { 
+                s += "illegal resource, ";
+                if (isDateMissing) { s += "missing date, "; }
+                else if (!isDateMissing && !date) { s += "illegal date, "; }
+
+                if (isBodyMissing) { s += "missing body, "; }
+                else if (!isBodyMissing && !body) { s += "illegal body, "; }
+
             }
 
 
@@ -515,5 +555,7 @@ static Response handleStatus4Response(Request request, List<Category> allCategor
     
     Response response = CreateReponse(s, request.Body);
     return response;
+
 }
 
+*/

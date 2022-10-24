@@ -1,8 +1,10 @@
 ﻿using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Server
@@ -14,68 +16,89 @@ namespace Server
         public string? Date { get; set; }
         public string? Body { get; set; }
 
-        /*
-        public bool IsMethodValid(string tempMethod)
+
+        //ErrorMessages 
+        private List<string> Errors = new List<string>(10);
+
+        //check if path is valid
+        private void isPathValid()
         {
-            bool ifValid = false;
-            string[] validMethods = { "create", "read", "update", "delete", "echo" };
-            foreach (string method in validMethods)
+            bool isPathMissing = string.IsNullOrEmpty(Path);
+
+            if (Method == "echo")
             {
-                if (string.Equals(tempMethod, method)) { ifValid = true; break; }
-            }
-            return ifValid;
-        }
-
-        public bool IsCidValid(string path, List<Category> allCids)
-        {
-            bool validCid = false;
-            string pCid = path.Remove(0, 15);
-            foreach (var cid in allCids)
-            {
-                if (string.Equals(cid.Cid, pCid))
-                {
-                    validCid = true;
-                    break;
-                }
-
-            }
-            return validCid;
-        }
-
-        static bool IsPathValid(string path, List<Category> allCids)
-        {
-            bool ifValid = false;
-            bool isPathMissing = string.IsNullOrEmpty(path);
-
-            //check if cid is valid
-            bool validCid = false;
-            string pCid = path.Remove(0, 15);
-            foreach (var cid in allCids)
-            {
-                if (string.Equals(cid.Cid, pCid))
-                {
-                    validCid = true;
-                    break;
-                }
+                return;
             }
 
-            //checks if path is valid
+            if (isPathMissing)
+            {
+                Errors.Add("missing resource");
+                return;
+            }
+
             if (!isPathMissing)
             {
-                if (string.Equals(path, "/api/categories")
-                    || path.StartsWith("testing")
-                    || path.StartsWith("/api/categories/") && validCid
-                   )
-                { ifValid = true; }
+                //accept testing paths
+                if (Path.StartsWith("testing"))
+                {
+                    return;
+                }
+
+                //reject paths without the /api/categories format
+                if (!Path.StartsWith("/api/categories"))
+                {
+                    Errors.Add("4 Bad Request");
+                    return;
+                }
+
+                int freq = Path.Count(f => f == '/');
+                string pCid = Path.Remove(0, 15);
+                bool isCidInt = int.TryParse(pCid, out int result);
+
+                //reject paths without id when method is delete or update
+                if (freq < 3 && Method == "delete" || freq < 3 && Method == "update")
+                {
+                    Errors.Add("4 Bad Request");
+                    return;
+                }
+
+                if (freq == 3 && !isCidInt)
+                {
+                    Errors.Add("illegal resource");
+                    return;
+
+                }
+
+                if (freq == 3 && isCidInt && Method == "create")
+                {
+                    Errors.Add("4 Bad Request");
+                    return;
+                }
+
+
             }
-            return ifValid;
+
+
+
+
+
         }
-        */
 
+        public Response status4Check()
+        {
+            Response response = new Response();
+            response.Status = "";
 
+            isPathValid();
+
+            foreach (string error in Errors)
+            {
+                //Console.WriteLine(error);
+                response.Status += error;
+            }
+
+            return response;
+        }
 
     }
-
-    
-
 }
