@@ -74,7 +74,7 @@ void HandleClient(TcpClient client)
     var request = JsonSerializer.Deserialize<Request>(requestText);
     Response response = CreateReponse("", "");
     response = request.status4Check();
-    Console.WriteLine(response.Status);
+    //Console.WriteLine(response.Status);
     SendResponse(stream, response);
 /*
        bool isBadRequest = checkForStatus4(request, allCategories);
@@ -125,6 +125,7 @@ static void SendResponse(NetworkStream stream, Response response)
 {
     var responseText = JsonSerializer.Serialize<Response>(response);
     var responseBuffer = Encoding.UTF8.GetBytes(responseText);
+    Console.WriteLine(responseText);
     stream.Write(responseBuffer);
 }
 

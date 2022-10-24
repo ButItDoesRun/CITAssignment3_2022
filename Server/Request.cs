@@ -49,35 +49,30 @@ namespace Server
         //check if method is valid - add error messages if not
         private void isMethodValid()
         {
-            string[] validMethods = { "create", "read", "update", "delete", "echo" };
             bool isMethodMissing = string.IsNullOrEmpty(Method);
 
             if (isMethodMissing) 
             {
-                Errors.Add("missing method");
+                Errors.Add("missing method ");
                 return;
             }
 
             if (!isMethodMissing)
             {
-                foreach (string method in validMethods)
+                if (Method == "create"
+                    || Method == "read"
+                    || Method == "update"
+                    || Method == "delete" 
+                    || Method == "echo" ) 
                 {
-                    //method is valid
-                    if (string.Equals(method, Method))
-                    {
-                        return;
-                    }
-
-                    //method is invalid
-                    if (!string.Equals(method, Method))
-                    {
-                        Errors.Add("illegal method");
-                        return;
-                    }
+                    return;
                 }
+                Errors.Add("illegal method ");
+                return;
             }
-
         }
+
+        
 
         //check if path is valid - add error messages if not
         private void isPathValid()
@@ -91,7 +86,7 @@ namespace Server
 
             if (isPathMissing)
             {
-                Errors.Add("missing resource");
+                Errors.Add("missing resource ");
                 return;
             }
 
@@ -106,7 +101,7 @@ namespace Server
                 //reject paths without the /api/categories format
                 if (!Path.StartsWith("/api/categories"))
                 {
-                    Errors.Add("4 Bad Request");
+                    Errors.Add("4 Bad Request ");
                     return;
                 }
 
@@ -119,20 +114,20 @@ namespace Server
                 //reject paths without id when method is delete or update
                 if (freq < 3 && Method == "delete" || freq < 3 && Method == "update")
                 {
-                    Errors.Add("4 Bad Request");
+                    Errors.Add("4 Bad Request ");
                     return;
                 }
 
                 if (freq == 3 && !isCidInt)
                 {
-                    Errors.Add("illegal resource");
+                    Errors.Add("illegal resource ");
                     return;
 
                 }
 
                 if (freq == 3 && isCidInt && Method == "create")
                 {
-                    Errors.Add("4 Bad Request");
+                    Errors.Add("4 Bad Request ");
                     return;
                 }
             }
@@ -144,20 +139,27 @@ namespace Server
             long currentDate = DateTimeOffset.Now.ToUnixTimeSeconds();
             bool isDate = Int64.TryParse(Date, out long requestDate);
 
+            Console.WriteLine(isDate);
             if (isDateMissing)
             {
-                Errors.Add("missing date");
+                Errors.Add("missing date ");
                 return;
             }
 
             if (!isDateMissing && isDate)
             {
+                Console.WriteLine(currentDate);
                 long subtractedDates = currentDate - requestDate;
+                Console.WriteLine(subtractedDates);
                 if (subtractedDates < 0)
                 {
-                    Errors.Add("illegal date");
+                    Errors.Add("illegal date ");
                     return;
                 }
+            }else if (!isDateMissing && !isDate)
+            {
+                Errors.Add("illegal date ");
+                return;
             }
             
         }
@@ -175,7 +177,7 @@ namespace Server
                 || isBodyMissing && Method == "create"
                 || isBodyMissing && Method == "update")
             {
-                Errors.Add("missing body");
+                Errors.Add("missing body ");
                 return;
             }
 
@@ -184,7 +186,7 @@ namespace Server
             {
                 if (!Body.Contains("name:"))
                 {
-                    Errors.Add("illegal body");
+                    Errors.Add("illegal body ");
                     return;
                 }
                 
@@ -199,7 +201,7 @@ namespace Server
                     {
                         if (catCid.Cid != cid)
                         {
-                            Errors.Add("illegal body");
+                            Errors.Add("illegal body ");
                             return;
                         }
                     }
