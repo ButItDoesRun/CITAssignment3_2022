@@ -20,7 +20,40 @@ namespace Server
         //ErrorMessages 
         private List<string> Errors = new List<string>(10);
 
-        //check if path is valid
+        //check if method is valid - add error messages if not
+        private void isMethodValid()
+        {
+            string[] validMethods = { "create", "read", "update", "delete", "echo" };
+            bool isMethodMissing = string.IsNullOrEmpty(Method);
+
+            if (isMethodMissing) 
+            {
+                Errors.Add("missing method");
+                return;
+            }
+
+            if (!isMethodMissing)
+            {
+                foreach (string method in validMethods)
+                {
+                    //method is valid
+                    if (string.Equals(method, Method))
+                    {
+                        return;
+                    }
+
+                    //method is invalid
+                    if (!string.Equals(method, Method))
+                    {
+                        Errors.Add("illegal method");
+                        return;
+                    }
+                }
+            }
+
+        }
+
+        //check if path is valid - add error messages if not
         private void isPathValid()
         {
             bool isPathMissing = string.IsNullOrEmpty(Path);
@@ -89,7 +122,9 @@ namespace Server
             Response response = new Response();
             response.Status = "";
 
+            isMethodValid();
             isPathValid();
+            
 
             foreach (string error in Errors)
             {
