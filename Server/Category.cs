@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.Text.Json.Serialization;
 
 namespace Server
 {
     internal class Category
     {
+        [JsonPropertyName("cid")]
         public string? Cid { get; set; }
+
+        [JsonPropertyName("name")]
         public string? Name { get; set; }
     }
 }

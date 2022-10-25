@@ -284,7 +284,7 @@ namespace Assignment3TestSuite
 
             Assert.Equal(expectedResponse.ToJson().ToLower(), response?.ToJson().ToLower());
         }
-#if COMMENT
+
         [Fact]
         public void Constraint_DeleteWithOutPathId_StatusBadRequest()
         {
@@ -339,7 +339,7 @@ namespace Assignment3TestSuite
 
             Assert.Equal(expectedResponse.ToJson(), response?.ToJson());
         }
-
+#if COMMENT
         [Fact]
         public void Request_ReadCategoryWithValidId_StatusOkAndCategoryInBody()
         {

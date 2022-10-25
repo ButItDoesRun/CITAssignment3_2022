@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 namespace Server
 {
     internal class DataModel
     {
-        public List<Category> dataModel { get; set; }
+     
         public DataModel(List<Category> categories)
         {
             dataModel = categories;
         }
+        public List<Category> dataModel { get; set; }
 
+        //read method - error because 
         public Response read(string path)
         {
             var response = new Response();
@@ -23,7 +19,7 @@ namespace Server
 
             if (freq == 3)
             {
-                string pCid = path.Remove(0, 15);
+                string pCid = path.Remove(0, 16);
                 var requested = dataModel.Find(x => x.Cid == pCid);
                 if (requested != null)
                 {
@@ -35,16 +31,29 @@ namespace Server
                     response.Status = "5 Not Found";
                 }
             }
-            else if (freq < 3)
+            else if (freq == 2)
             {
                 response.Status = "1 Ok";
-                var allListElements = JsonSerializer.Serialize(dataModel);
-                response.Body = allListElements;
+                var toJson = JsonSerializer.Serialize(dataModel);
+                response.Body = toJson;
             }
 
             return response;
+
         }
+
+        //haven't gotten further
+        public Response create(string path)
+        {
+            var response = new Response();
+
+            //int createCid = dataModel.Capacity + 1;
+         
+
+            return response;
+        }
+
+
     }
 
-    
 }

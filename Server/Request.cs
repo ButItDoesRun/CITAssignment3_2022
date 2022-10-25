@@ -1,11 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿
 
 namespace Server
 {
@@ -105,19 +98,25 @@ namespace Server
                     return;
                 }
 
+                //check if path has a cid, and save cid
                 int freq = Path.Count(f => f == '/');
-                string pCid = Path.Remove(0, 16);
-                //get cid
-                cid = pCid;
-                bool isCidInt = int.TryParse(pCid, out int result);
+                bool isCidInt = false;
+                if (freq >= 3)
+                {
+                    string pCid = Path.Remove(0, 16); 
+                    //save cid
+                    cid = pCid;
+                    isCidInt = int.TryParse(pCid, out int result);
+                }
 
                 //reject paths without id when method is delete or update
                 if (freq < 3 && Method == "delete" || freq < 3 && Method == "update")
                 {
-                    Errors.Add("4 Bad Request ");
+                    Errors.Add("4 Bad Request");
                     return;
                 }
 
+                //reject paths with invalid cid
                 if (freq == 3 && !isCidInt)
                 {
                     Errors.Add("4 Bad Request");
@@ -125,6 +124,7 @@ namespace Server
 
                 }
 
+                //reject paths with cid if method 'create'
                 if (freq == 3 && isCidInt && Method == "create")
                 {
                     Errors.Add("4 Bad Request ");
@@ -133,22 +133,22 @@ namespace Server
             }
         }
 
+        //check if date is valid - add error messages if not
         private void isDateValid()
         {
             bool isDateMissing = string.IsNullOrEmpty(Date);
             long currentDate = DateTimeOffset.Now.ToUnixTimeSeconds();
             bool isDate = Int64.TryParse(Date, out long requestDate);
 
-            Console.WriteLine(isDate);
             if (isDateMissing)
             {
                 Errors.Add("missing date ");
                 return;
             }
 
+            //check if valid date stamp is an actual unix stamp
             if (!isDateMissing && isDate)
             {
-                Console.WriteLine(currentDate);
                 long subtractedDates = currentDate - requestDate;
                 Console.WriteLine(subtractedDates);
                 if (subtractedDates < 0)
@@ -164,15 +164,18 @@ namespace Server
             
         }
 
+        //check if body is valid - add error messages if not
         private void isBodyValid()
         { 
             bool isBodyMissing = string.IsNullOrEmpty(Body);
 
+            //body is unnecessary for method "read" & "delete"
             if (Method == "read" || isBodyMissing && Method == "delete")
             {
                 return; 
             }
 
+            //check if body missing
             if (isBodyMissing && Method == "echo"
                 || isBodyMissing && Method == "create"
                 || isBodyMissing && Method == "update")
@@ -181,7 +184,7 @@ namespace Server
                 return;
             }
 
-       
+            //check if body is illegal for method "create"
             if (!isBodyMissing && Method == "create")
             {
                 if (!Body.Contains("name:"))
@@ -192,6 +195,7 @@ namespace Server
                 
             }
 
+            //check if body is illegal for method "update"
             if (!isBodyMissing && Method == "update")
             {
                 //Json objects will always be encapsulated in {}
@@ -200,6 +204,8 @@ namespace Server
                     Errors.Add("illegal body ");
                     return;
                 }
+
+                //check if cid in body is valid 
                 Category newCat = bodyToCategory();
                 if (!string.IsNullOrEmpty(newCat.Cid) && !string.IsNullOrEmpty(newCat.Name))
                 {
@@ -215,27 +221,29 @@ namespace Server
             }
         }
 
+        //check for status 4 requests and append error messages
         public Response status4Check()
         {
             Response response = new Response();
             response.Status = "";
 
+            //check request parameters using error append methods
             isMethodValid();
             isPathValid();
             isDateValid();
             isBodyValid();
 
 
-
+            //add error messages to status
             foreach (string error in Errors)
             {
-                //Console.WriteLine(error);
                 response.Status += error;
             }
 
-            //handle create status 4
+            //handle create/update status 4
             String badR = "4 Bad Request";
-            if (response.Status.Contains("4 Bad Request") && Method == "create")
+            if (response.Status.Contains(badR) && Method == "create"
+                || response.Status.Contains(badR) && Method == "update")
             {
                 response.Status = badR;
                 response.Body = null;
@@ -243,6 +251,10 @@ namespace Server
 
             return response;
         }
+
+        //this is a big work around to transform the body parameter in string format into an object
+        //instead of using Serializer.Serialize<Category>(category) as that wouldn't work for me
+
         private Category bodyToCategory()
         {
             var newCategory = new Category { Cid = "", Name = "" };
